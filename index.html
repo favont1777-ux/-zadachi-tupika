@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1f2fff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Задачи">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-192.png">
+<title>Мои задачи</title>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#1f2fff;--bg:#fff;--card:#fff;--ink:#07070d;--mute:#6b7190;--line:#d5daf5;--acc:#1f2fff;--accink:#fff;--bad:#ff3d5a;--q1:#1f2fff;--q2:#07070d;--q3:#ff3d5a;--q4:#9aa4ff;--t2:#07070d;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#07070d;--card:#12131f;--ink:#f2f4ff;--mute:#9aa1c8;--line:#262a52;--acc:#4d5cff;--blue:#3342ff;--q1:#4d5cff;--q2:#f2f4ff;--t2:#1a1c33;}}
+:root[data-theme="dark"]{--bg:#07070d;--card:#12131f;--ink:#f2f4ff;--mute:#9aa1c8;--line:#262a52;--acc:#4d5cff;--blue:#3342ff;--q1:#4d5cff;--q2:#f2f4ff;--t2:#1a1c33;}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Montserrat,system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
+main{max-width:760px;margin:0 auto;padding:16px 16px 48px}
+.hero{position:relative;overflow:hidden;background:var(--blue);color:#fff;border-radius:22px;padding:18px 20px 20px;margin-bottom:16px}
+.tag{display:inline-block;border:1.5px solid #fff;border-radius:999px;padding:3px 12px;font-size:.68rem;font-weight:700;letter-spacing:.1em}
+h1{margin:14px 0 8px;font-size:clamp(1.8rem,9vw,3.2rem);line-height:1.02;font-weight:800;text-transform:uppercase;letter-spacing:-.01em;position:relative}
+h1 span{display:block}
+h1 span:nth-child(2){opacity:.55}
+h1 span:nth-child(3){opacity:.25}
+.sub{margin:0;font-size:.85rem;font-weight:600;opacity:.9}
+.ring{position:absolute;right:-26px;top:8px;width:150px;height:150px;border-radius:50%;background:conic-gradient(from 30deg,#fff,#9fb0ff,#2638ff,#c9d2ff,#fff);-webkit-mask:radial-gradient(circle,transparent 33%,#000 35%);mask:radial-gradient(circle,transparent 33%,#000 35%);transform:rotate(-20deg) scaleY(.85);opacity:.95}
+.add{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--card);border:2px solid var(--blue);border-radius:18px;padding:10px}
+.add input[type=text]{flex:1 1 100%;border:0;background:transparent;color:var(--ink);font:inherit;font-size:1rem;font-weight:600;padding:8px;outline:0;min-width:0}
+.add input[type=date]{border:1.5px solid var(--blue);background:transparent;color:var(--ink);font:inherit;font-size:.9rem;border-radius:999px;padding:5px 12px}
+.pill input{position:absolute;opacity:0;pointer-events:none}
+.pill span{display:inline-block;border:1.5px solid var(--blue);border-radius:999px;padding:6px 14px;color:var(--blue);font-weight:600;font-size:.9rem;cursor:pointer;user-select:none}
+.pill input:checked+span{background:var(--blue);color:#fff}
+.pill input:focus-visible+span{outline:2px solid var(--ink);outline-offset:2px}
+button{font:inherit;cursor:pointer}
+.go{margin-left:auto;background:var(--blue);color:#fff;border:0;border-radius:999px;padding:10px 22px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;font-size:.85rem}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.bar{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:18px 0 12px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button{background:transparent;border:1.5px solid var(--blue);color:var(--blue);border-radius:999px;padding:6px 14px;font-weight:600;font-size:.85rem}
+.tabs button[aria-pressed=true]{background:var(--blue);color:#fff}
+ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+li{display:flex;align-items:center;gap:10px;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
+li input[type=checkbox]{width:22px;height:22px;accent-color:var(--blue);flex:none}
+li.q{border-left:5px solid var(--c)}
+.t{flex:1;min-width:0;overflow-wrap:anywhere;font-weight:600}
+li.done .t{text-decoration:line-through;color:var(--mute);font-weight:400}
+.d{font-size:.78rem;color:var(--mute);display:block;margin-top:2px;font-weight:600}
+.d.late{color:var(--bad);font-weight:800}
+.chip{background:transparent;border:1.5px solid var(--line);color:var(--mute);border-radius:999px;padding:2px 8px;font-size:.85rem;line-height:1.4}
+.chip[aria-pressed=true]{background:var(--blue);color:#fff;border-color:var(--blue)}
+.x{background:transparent;border:0;color:var(--mute);font-size:1.3rem;line-height:1;padding:4px 8px;border-radius:8px}
+.x:hover{color:var(--bad)}
+.empty{text-align:center;color:var(--mute);padding:32px 8px;display:block;font-weight:600}
+.mx{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cell{border-radius:20px;padding:14px 12px;min-height:170px;min-width:0;color:#fff}
+.cell h2{font-size:.82rem;margin:0;font-weight:800;text-transform:uppercase;line-height:1.15}
+.cell p{margin:3px 0 10px;font-size:.74rem;opacity:.85;font-weight:600}
+.cell li{padding:8px;flex-wrap:wrap}
+.cell .none{opacity:.7;font-size:.85rem}
+.c1{background:#1f2fff}
+.c2{background:var(--t2)}
+.c3{background:radial-gradient(circle at 100% 100%,#ff3d5a 0,rgba(255,61,90,0) 62%),var(--card);color:var(--ink);border:2px solid var(--blue)}
+.c4{background:linear-gradient(160deg,#1f2fff 0,#9aa4ff 60%,#e8ebff 100%)}
+.foot{display:flex;justify-content:space-between;align-items:center;margin-top:16px;color:var(--mute);font-size:.9rem;font-weight:600}
+.foot button{background:transparent;border:0;color:var(--blue);font-weight:800}
+</style>
+</head>
+<body>
+<main>
+<header class="hero"><span class="tag">TASK PLANNER</span><div class="ring" aria-hidden="true"></div><h1><span>Мои задачи</span><span aria-hidden="true">Мои задачи</span><span aria-hidden="true">Мои задачи</span></h1><p class="sub" id="sub"></p></header>
+<div class="add">
+<input type="text" id="txt" placeholder="Новая задача" maxlength="200" aria-label="Текст задачи">
+<label class="pill"><input type="checkbox" id="imp"><span>★ Важно</span></label>
+<label class="pill"><input type="checkbox" id="urg"><span>⚡ Срочно</span></label>
+<input type="date" id="due" aria-label="Срок">
+<button class="go" id="add">Добавить</button>
+</div>
+<div class="bar">
+<div class="tabs" role="group" aria-label="Вид" id="views">
+<button data-v="list" aria-pressed="true">Список</button>
+<button data-v="matrix" aria-pressed="false">Матрица</button>
+</div>
+<div class="tabs" role="group" aria-label="Фильтр" id="filters">
+<button data-f="active" aria-pressed="true">Активные</button>
+<button data-f="done" aria-pressed="false">Готово</button>
+<button data-f="all" aria-pressed="false">Все</button>
+</div>
+</div>
+<div id="out"></div>
+<div class="foot"><span id="cnt"></span><button id="clr">Удалить выполненные</button></div>
+</main>
+<script>
+var KEY="todo-planner-v1",VK="todo-view-v1",tasks=[],filter="active",view="list";
+try{tasks=JSON.parse(localStorage.getItem(KEY)||"[]")}catch(e){tasks=[]}
+try{view=localStorage.getItem(VK)==="matrix"?"matrix":"list"}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(tasks))}catch(e){}}
+var $=function(i){return document.getElementById(i)};
+var Q={1:{n:"1 · Сделать сейчас",s:"важно и срочно",c:"var(--q1)"},2:{n:"2 · Запланировать",s:"важно, не срочно",c:"var(--q2)"},3:{n:"3 · Делегировать",s:"срочно, не важно",c:"var(--q3)"},4:{n:"4 · Отложить или убрать",s:"не важно, не срочно",c:"var(--q4)"}};
+function quad(t){return t.imp&&t.urg?1:t.imp?2:t.urg?3:4}
+function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function fmt(s){var p=s.split("-");return new Date(p[0],p[1]-1,p[2]).toLocaleDateString("ru-RU",{day:"numeric",month:"long"})}
+function chip(t,k,txt,label){var b=document.createElement("button");b.className="chip";b.textContent=txt;b.setAttribute("aria-label",label);b.setAttribute("aria-pressed",!!t[k]);b.onclick=function(){t[k]=!t[k];save();render()};return b}
+function item(t){
+ var li=document.createElement("li");li.className="q"+(t.done?" done":"");li.style.setProperty("--c",Q[quad(t)].c);
+ var c=document.createElement("input");c.type="checkbox";c.checked=t.done;c.setAttribute("aria-label","Выполнено");
+ c.onchange=function(){t.done=c.checked;save();render()};
+ var w=document.createElement("div");w.className="t";w.textContent=t.text;
+ if(t.due){var d=document.createElement("span");var late=!t.done&&t.due<today();d.className="d"+(late?" late":"");d.textContent=(late?"Просрочено: ":"До ")+fmt(t.due);w.appendChild(d)}
+ var x=document.createElement("button");x.className="x";x.textContent="×";x.setAttribute("aria-label","Удалить");
+ x.onclick=function(){tasks=tasks.filter(function(k){return k!==t});save();render()};
+ li.append(c,w,chip(t,"imp","★","Важно"),chip(t,"urg","⚡","Срочно"),x);return li}
+function render(){
+ var o=$("out");o.innerHTML="";
+ var vis=tasks.filter(function(t){return filter==="all"||(filter==="done")===t.done});
+ if(view==="list"){
+  vis.sort(function(a,b){return a.done-b.done||quad(a)-quad(b)||(a.due||"9").localeCompare(b.due||"9")});
+  var l=document.createElement("ul");
+  if(!vis.length){var e=document.createElement("li");e.className="empty";e.textContent=tasks.length?"Здесь пока ничего нет":"Задач нет. Напишите первую выше.";l.appendChild(e)}
+  vis.forEach(function(t){l.appendChild(item(t))});o.appendChild(l);
+ }else{
+  var g=document.createElement("div");g.className="mx";
+  [1,2,3,4].forEach(function(n){
+   var cell=document.createElement("section");cell.className="cell c"+n;cell.style.setProperty("--c",Q[n].c);
+   var h=document.createElement("h2");h.textContent=Q[n].n;var p=document.createElement("p");p.textContent=Q[n].s;cell.append(h,p);
+   var items=vis.filter(function(t){return quad(t)===n}).sort(function(a,b){return a.done-b.done||(a.due||"9").localeCompare(b.due||"9")});
+   var ul=document.createElement("ul");
+   if(!items.length){var m=document.createElement("div");m.className="none";m.textContent="Пусто";cell.appendChild(m)}
+   items.forEach(function(t){ul.appendChild(item(t))});cell.appendChild(ul);g.appendChild(cell)});
+  o.appendChild(g);
+ }
+ $("cnt").textContent="Осталось: "+tasks.filter(function(t){return!t.done}).length;
+ $("sub").textContent=new Date().toLocaleDateString("ru-RU",{weekday:"long",day:"numeric",month:"long"});
+ $("clr").style.visibility=tasks.some(function(t){return t.done})?"visible":"hidden";
+ document.querySelectorAll("#views button").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.v===view)});
+ document.querySelectorAll("#filters button").forEach(function(b){b.setAttribute("aria-pressed",b.dataset.f===filter)});
+}
+function add(){var v=$("txt").value.trim();if(!v)return;tasks.push({text:v,due:$("due").value,done:false,imp:$("imp").checked,urg:$("urg").checked});$("txt").value="";$("due").value="";$("imp").checked=false;$("urg").checked=false;save();render();$("txt").focus()}
+$("add").onclick=add;
+$("txt").onkeydown=function(e){if(e.key==="Enter")add()};
+$("clr").onclick=function(){tasks=tasks.filter(function(t){return!t.done});save();render()};
+document.querySelectorAll("#filters button").forEach(function(b){b.onclick=function(){filter=b.dataset.f;render()}});
+document.querySelectorAll("#views button").forEach(function(b){b.onclick=function(){view=b.dataset.v;try{localStorage.setItem(VK,view)}catch(e){}render()}});
+if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("service-worker.js").catch(function(){})})}
+render();
+</script>
+</body>
+</html>
