@@ -63,6 +63,16 @@ li.done .t{text-decoration:line-through;color:var(--mute);font-weight:400}
 .cell p{margin:3px 0 10px;font-size:.74rem;opacity:.85;font-weight:600}
 .cell li{padding:8px;flex-wrap:wrap}
 .cell .none{opacity:.7;font-size:.85rem}
+/* Drag & drop between Eisenhower matrix quadrants */
+.cell{transition:outline-color .15s,transform .15s}
+.cell.drag-over{outline:3px dashed rgba(255,255,255,.9);outline-offset:-7px;transform:scale(1.008)}
+.cell.c3.drag-over{outline-color:var(--blue)}
+li.task-card{cursor:grab;touch-action:pan-y}
+.cell li.task-card{touch-action:none}
+li.task-card:active{cursor:grabbing}
+li.task-card.dragging{opacity:.28}
+.drag-ghost{position:fixed!important;z-index:99999;pointer-events:none;opacity:.92;box-shadow:0 14px 36px rgba(0,0,0,.25);transform:rotate(1.5deg);width:min(420px,calc(100vw - 32px));list-style:none}
+.drag-hint{font-size:.75rem;color:var(--mute);margin:0 0 10px;font-weight:600}
 .c1{background:#1f2fff}
 .c2{background:var(--t2)}
 .c3{background:radial-gradient(circle at 100% 100%,#ff3d5a 0,rgba(255,61,90,0) 62%),var(--card);color:var(--ink);border:2px solid var(--blue)}
@@ -153,11 +163,56 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(tasks))}catch(e){}}
 var $=function(i){return document.getElementById(i)};
 var Q={1:{n:"1 · Сделать сейчас",s:"важно и срочно",c:"var(--q1)"},2:{n:"2 · Запланировать",s:"важно, не срочно",c:"var(--q2)"},3:{n:"3 · Делегировать",s:"срочно, не важно",c:"var(--q3)"},4:{n:"4 · Отложить или убрать",s:"не важно, не срочно",c:"var(--q4)"}};
 function quad(t){return t.imp&&t.urg?1:t.imp?2:t.urg?3:4}
+// Перетаскивание карточек: мышь — сразу, сенсорный экран — после короткого удержания.
+var taskDrag=null;
+function clearDragVisuals(){
+ document.querySelectorAll(".cell.drag-over").forEach(function(c){c.classList.remove("drag-over")});
+ if(taskDrag){if(taskDrag.timer)clearTimeout(taskDrag.timer);if(taskDrag.ghost)taskDrag.ghost.remove();if(taskDrag.li)taskDrag.li.classList.remove("dragging")}
+}
+function beginTaskDrag(e,li,t){
+ if(view!=="matrix")return;
+ if(e.button!==undefined&&e.button!==0)return;
+ if(e.target.closest("button,input"))return;
+ if(taskDrag)return;
+ var state={li:li,task:t,pointerId:e.pointerId,startX:e.clientX,startY:e.clientY,x:e.clientX,y:e.clientY,active:false,timer:null,ghost:null,target:null};
+ taskDrag=state;
+ function activate(){
+  if(taskDrag!==state)return;
+  state.active=true;state.li.classList.add("dragging");
+  state.ghost=state.li.cloneNode(true);state.ghost.classList.remove("dragging");state.ghost.classList.add("drag-ghost");
+  state.ghost.style.left=(state.x-24)+"px";state.ghost.style.top=(state.y-24)+"px";state.ghost.style.width=Math.min(state.li.getBoundingClientRect().width,window.innerWidth-32)+"px";
+  document.body.appendChild(state.ghost);updateDragTarget(state);
+ }
+ state.activate=activate;
+ if(e.pointerType==="touch")state.timer=setTimeout(activate,260);else activate();
+}
+function updateDragTarget(state){
+ if(state.target)state.target.classList.remove("drag-over");
+ var el=document.elementFromPoint(state.x,state.y);var cell=el&&el.closest?el.closest(".cell"):null;
+ state.target=cell||null;if(state.target)state.target.classList.add("drag-over");
+ if(state.ghost){state.ghost.style.left=(state.x-24)+"px";state.ghost.style.top=(state.y-24)+"px"}
+}
+document.addEventListener("pointermove",function(e){
+ if(!taskDrag||e.pointerId!==taskDrag.pointerId)return;
+ var s=taskDrag;s.x=e.clientX;s.y=e.clientY;
+ if(!s.active&&Math.hypot(s.x-s.startX,s.y-s.startY)>12){if(s.timer)clearTimeout(s.timer);taskDrag=null;return}
+ if(s.active){e.preventDefault();updateDragTarget(s)}
+},{passive:false});
+document.addEventListener("pointerup",function(e){
+ if(!taskDrag||e.pointerId!==taskDrag.pointerId)return;
+ var s=taskDrag;var target=s.target;var wasActive=s.active;
+ if(wasActive&&target){var n=Number(target.dataset.quadrant);if(n>=1&&n<=4){s.task.imp=(n===1||n===2);s.task.urg=(n===1||n===3);save()}}
+ clearDragVisuals();taskDrag=null;
+ if(wasActive)render();
+});
+document.addEventListener("pointercancel",function(e){if(taskDrag&&e.pointerId===taskDrag.pointerId){clearDragVisuals();taskDrag=null}});
 function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 function fmt(s){var p=s.split("-");return new Date(p[0],p[1]-1,p[2]).toLocaleDateString("ru-RU",{day:"numeric",month:"long"})}
 function chip(t,k,txt,label){var b=document.createElement("button");b.className="chip";b.textContent=txt;b.setAttribute("aria-label",label);b.setAttribute("aria-pressed",!!t[k]);b.onclick=function(){t[k]=!t[k];save();render()};return b}
 function item(t){
- var li=document.createElement("li");li.className="q"+(t.done?" done":"");li.style.setProperty("--c",Q[quad(t)].c);
+ var li=document.createElement("li");li.className="q task-card"+(t.done?" done":"");li.dataset.taskDraggable="true";li.style.setProperty("--c",Q[quad(t)].c);
+ li.setAttribute("aria-label","Задача. Перетащите карточку в другой квадрант матрицы");
+ li.addEventListener("pointerdown",function(e){beginTaskDrag(e,li,t)});
  var c=document.createElement("input");c.type="checkbox";c.checked=t.done;c.setAttribute("aria-label","Выполнено");
  c.onchange=function(){t.done=c.checked;save();render()};
  var w=document.createElement("div");w.className="t";w.textContent=t.text;
@@ -174,9 +229,10 @@ function render(){
   if(!vis.length){var e=document.createElement("li");e.className="empty";e.textContent=tasks.length?"Здесь пока ничего нет":"Задач нет. Напишите первую выше.";l.appendChild(e)}
   vis.forEach(function(t){l.appendChild(item(t))});o.appendChild(l);
  }else{
+  var hint=document.createElement("p");hint.className="drag-hint";hint.textContent="Перетащите карточку в другой квадрант, чтобы изменить её приоритет.";o.appendChild(hint);
   var g=document.createElement("div");g.className="mx";
   [1,2,3,4].forEach(function(n){
-   var cell=document.createElement("section");cell.className="cell c"+n;cell.style.setProperty("--c",Q[n].c);
+   var cell=document.createElement("section");cell.className="cell c"+n;cell.dataset.quadrant=String(n);cell.style.setProperty("--c",Q[n].c);
    var h=document.createElement("h2");h.textContent=Q[n].n;var p=document.createElement("p");p.textContent=Q[n].s;cell.append(h,p);
    var items=vis.filter(function(t){return quad(t)===n}).sort(function(a,b){return a.done-b.done||(a.due||"9").localeCompare(b.due||"9")});
    var ul=document.createElement("ul");
